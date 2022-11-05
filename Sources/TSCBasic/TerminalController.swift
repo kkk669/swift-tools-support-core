@@ -143,7 +143,7 @@ public final class TerminalController {
         // Following code does not compile on ppc64le well. TIOCGWINSZ is
         // defined in system ioctl.h file which needs to be used. This is
         // a temporary arrangement and needs to be fixed.
-#if !arch(powerpc64le)
+#if !arch(powerpc64le) && !os(WASI)
         var ws = winsize()
 #if os(OpenBSD)
         let tiocgwinsz = 0x40087468

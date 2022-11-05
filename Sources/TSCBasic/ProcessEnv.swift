@@ -61,10 +61,12 @@ public enum ProcessEnv {
         return vars[pathArg]
     }
 
+#if !os(WASI)
     /// The current working directory of the process.
     public static var cwd: AbsolutePath? {
         return localFileSystem.currentWorkingDirectory
     }
+#endif
 
     /// Change the current working directory of the process.
     public static func chdir(_ path: AbsolutePath) throws {

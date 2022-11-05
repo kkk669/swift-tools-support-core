@@ -8,6 +8,8 @@
  See http://swift.org/CONTRIBUTORS.txt for Swift project authors
 */
 
+#if !os(WASI)
+
 import TSCLibc
 import class Foundation.FileHandle
 import class Foundation.FileManager
@@ -277,3 +279,4 @@ public func withTemporaryDirectory<Result>(
     }
 }
 
+#endif

@@ -8,7 +8,9 @@
  See http://swift.org/CONTRIBUTORS.txt for Swift project authors
 */
 
+#if !os(WASI)
 import Dispatch
+#endif
 
 /// The payload of a diagnostic.
 public protocol DiagnosticData: CustomStringConvertible {
@@ -84,15 +86,21 @@ public final class DiagnosticsEngine: CustomStringConvertible {
 
     public typealias DiagnosticsHandler = (Diagnostic) -> Void
 
+#if !os(WASI)
     /// Queue to protect concurrent mutations to the diagnositcs engine.
     private let queue = DispatchQueue(label: "\(DiagnosticsEngine.self)")
 
     /// Queue for dispatching handlers.
     private let handlerQueue = DispatchQueue(label: "\(DiagnosticsEngine.self)-callback")
+#endif
 
     /// The diagnostics produced by the engine.
     public var diagnostics: [Diagnostic] {
+#if !os(WASI)
         return queue.sync { _diagnostics }
+#else
+        return _diagnostics
+#endif
     }
     private var _diagnostics: [Diagnostic] = []
 
@@ -122,12 +130,17 @@ public final class DiagnosticsEngine: CustomStringConvertible {
     }
 
     public func emit(_ diagnostic: Diagnostic) {
+#if !os(WASI)
         queue.sync {
             _diagnostics.append(diagnostic)
         }
+#else
+        _diagnostics.append(diagnostic)
+#endif
 
         // Call the handlers on the background queue, if we have any.
         if !handlers.isEmpty {
+#if !os(WASI)
             // FIXME: We should probably do this async but then we need
             // a way for clients to be able to wait until all handlers
             // are called.
@@ -136,6 +149,11 @@ public final class DiagnosticsEngine: CustomStringConvertible {
                     handler(diagnostic)
                 }
             }
+#else
+            for handler in self.handlers {
+                handler(diagnostic)
+            }
+#endif
         }
     }
 

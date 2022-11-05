@@ -103,7 +103,7 @@ let package = Package(
 
  if ProcessInfo.processInfo.environment["SWIFTCI_USE_LOCAL_DEPS"] == nil {
      package.dependencies += [
-         .package(url: "https://github.com/apple/swift-system.git", .upToNextMinor(from: "1.1.1")),
+         .package(url: "https://github.com/kkk669/swift-system.git", .branch("wasm32-wasi")),
      ]
  } else {
      package.dependencies += [

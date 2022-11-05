@@ -84,6 +84,7 @@ private func quote(_ arguments: [String]) -> String {
 }
 #endif
 
+#if !os(WASI)
 /// Replace the current process image with a new process image.
 ///
 /// - Parameters:
@@ -173,6 +174,7 @@ public func exec(path: String, args: [String]) throws -> Never {
 public func exec(path: String, args: [String]) throws {
     try exec(path: path, args: args)
 }
+#endif
 
 // MARK: TSCUtility function for searching for executables
 
@@ -201,6 +203,7 @@ public func getEnvSearchPaths(
     })
 }
 
+#if !os(WASI)
 /// Lookup an executable path from an environment variable value, current working
 /// directory or search paths. Only return a value that is both found and executable.
 ///
@@ -244,6 +247,7 @@ public func lookupExecutablePath(
 
     return paths.first(where: { localFileSystem.isExecutableFile($0) })
 }
+#endif
 
 /// A wrapper for Range to make it Codable.
 ///

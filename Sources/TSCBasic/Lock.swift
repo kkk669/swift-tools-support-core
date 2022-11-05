@@ -54,6 +54,8 @@ extension ProcessLockError: CustomNSError {
         return [NSLocalizedDescriptionKey: "\(self)"]
     }
 }
+
+#if !os(WASI)
 /// Provides functionality to acquire a lock on a file via POSIX's flock() method.
 /// It can be used for things like serializing concurrent mutations on a shared resource
 /// by multiple instances of a process. The `FileLock` is not thread-safe.
@@ -219,3 +221,4 @@ public final class FileLock {
         return try lock.withLock(type: type, body)
     }
 }
+#endif

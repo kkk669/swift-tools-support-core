@@ -8,6 +8,8 @@
  See http://swift.org/CONTRIBUTORS.txt for Swift project authors
  */
 
+#if !os(WASI)
+
 import Foundation
 
 /// File system information for a particular file.
@@ -59,3 +61,5 @@ public struct FileInfo: Equatable, Codable {
 }
 
 extension FileAttributeType: Codable {}
+
+#endif

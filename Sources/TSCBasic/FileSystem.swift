@@ -10,7 +10,9 @@
 
 import TSCLibc
 import Foundation
+#if !os(WASI)
 import Dispatch
+#endif
 import SystemPackage
 
 public struct FileSystemError: Error, Equatable {
@@ -236,10 +238,12 @@ public protocol FileSystem: AnyObject {
     /// Change file mode.
     func chmod(_ mode: FileMode, path: AbsolutePath, options: Set<FileMode.Option>) throws
 
+#if !os(WASI)
     /// Returns the file info of the given path.
     ///
     /// The method throws if the underlying stat call fails.
     func getFileInfo(_ path: AbsolutePath) throws -> FileInfo
+#endif
 
     /// Copy a file or directory.
     func copy(from sourcePath: AbsolutePath, to destinationPath: AbsolutePath) throws
@@ -247,8 +251,10 @@ public protocol FileSystem: AnyObject {
     /// Move a file or directory.
     func move(from sourcePath: AbsolutePath, to destinationPath: AbsolutePath) throws
 
+#if !os(WASI)
     /// Execute the given block while holding the lock.
     func withLock<T>(on path: AbsolutePath, type: FileLock.LockType, _ body: () throws -> T) throws -> T
+#endif
 }
 
 /// Convenience implementations (default arguments aren't permitted in protocol
@@ -286,15 +292,20 @@ public extension FileSystem {
         try writeFileContents(path, bytes: contents.bytes)
     }
 
+#if !os(WASI)
     func getFileInfo(_ path: AbsolutePath) throws -> FileInfo {
         throw FileSystemError(.unsupported, path)
     }
+#endif
 
+#if !os(WASI)
     func withLock<T>(on path: AbsolutePath, type: FileLock.LockType, _ body: () throws -> T) throws -> T {
         throw FileSystemError(.unsupported, path)
     }
+#endif
 }
 
+#if !os(WASI)
 /// Concrete FileSystem implementation which communicates with the local file system.
 private class LocalFileSystem: FileSystem {
 
@@ -547,6 +558,7 @@ private class LocalFileSystem: FileSystem {
         try FileLock.withLock(fileToLock: path, type: type, body: body)
     }
 }
+#endif
 
 // FIXME: This class does not yet support concurrent mutation safely.
 //
@@ -616,10 +628,12 @@ public class InMemoryFileSystem: FileSystem {
     /// reality, the only practical use for InMemoryFileSystem is for unit
     /// tests.
     private let lock = NSLock()
+#if !os(WASI)
     /// A map that keeps weak references to all locked files.
     private var lockFiles = Dictionary<AbsolutePath, WeakReference<DispatchQueue>>()
     /// Used to access lockFiles in a thread safe manner.
     private let lockFilesLock = NSLock()
+#endif
 
     /// Exclusive file system lock vended to clients through `withLock()`.
     // Used to ensure that DispatchQueues are releassed when they are no longer in use.
@@ -985,6 +999,7 @@ public class InMemoryFileSystem: FileSystem {
         }
     }
 
+#if !os(WASI)
     public func withLock<T>(on path: AbsolutePath, type: FileLock.LockType = .exclusive, _ body: () throws -> T) throws -> T {
         let resolvedPath: AbsolutePath = try lock.withLock {
             if case let .symlink(destination) = try getNode(path)?.contents {
@@ -1006,6 +1021,7 @@ public class InMemoryFileSystem: FileSystem {
 
         return try fileQueue.sync(flags: type == .exclusive ? .barrier : .init() , execute: body)
     }
+#endif
 }
 
 /// A rerooted view on an existing FileSystem.
@@ -1154,13 +1170,17 @@ public class RerootedFileSystemView: FileSystem {
         try underlyingFileSystem.move(from: formUnderlyingPath(sourcePath), to: formUnderlyingPath(sourcePath))
     }
 
+#if !os(WASI)
     public func withLock<T>(on path: AbsolutePath, type: FileLock.LockType = .exclusive, _ body: () throws -> T) throws -> T {
         return try underlyingFileSystem.withLock(on: formUnderlyingPath(path), type: type, body)
     }
+#endif
 }
 
+#if !os(WASI)
 /// Public access to the local FS proxy.
 public var localFileSystem: FileSystem = LocalFileSystem()
+#endif
 
 extension FileSystem {
     /// Print the filesystem tree of the given path.
@@ -1205,7 +1225,7 @@ extension FileSystem {
     }
 }
 
-#if !os(Windows)
+#if !os(Windows) && !os(WASI)
 extension dirent {
     /// Get the directory name.
     ///

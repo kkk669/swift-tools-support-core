@@ -20,6 +20,7 @@
 import TSCLibc
 import Foundation
 
+#if !os(WASI)
 /// Returns the "real path" corresponding to `path` by resolving any symbolic links.
 public func resolveSymlinks(_ path: AbsolutePath) throws -> AbsolutePath {
 #if os(Windows)
@@ -71,7 +72,9 @@ public func createSymlink(_ path: AbsolutePath, pointingAt dest: AbsolutePath, r
     let destString = relative ? dest.relative(to: path.parentDirectory).pathString : dest.pathString
     try FileManager.default.createSymbolicLink(atPath: path.pathString, withDestinationPath: destString)
 }
+#endif
 
+#if !os(WASI)
 /**
  - Returns: a generator that walks the specified directory producing all
  files therein. If recursively is true will enter any directories
@@ -95,7 +98,33 @@ public func walk(
         fileSystem: fileSystem,
         recursionFilter: { _ in recursively })
 }
+#else
+/**
+ - Returns: a generator that walks the specified directory producing all
+ files therein. If recursively is true will enter any directories
+ encountered recursively.
+ 
+ - Warning: directories that cannot be entered due to permission problems
+ are silently ignored. So keep that in mind.
+ 
+ - Warning: Symbolic links that point to directories are *not* followed.
+ 
+ - Note: setting recursively to `false` still causes the generator to feed
+ you the directory; just not its contents.
+ */
+public func walk(
+    _ path: AbsolutePath,
+    fileSystem: FileSystem,
+    recursively: Bool = true
+) throws -> RecursibleDirectoryContentsGenerator {
+    return try RecursibleDirectoryContentsGenerator(
+        path: path,
+        fileSystem: fileSystem,
+        recursionFilter: { _ in recursively })
+}
+#endif
 
+#if !os(WASI)
 /**
  - Returns: a generator that walks the specified directory producing all
  files therein. Directories are recursed based on the return value of
@@ -116,6 +145,28 @@ public func walk(
 ) throws -> RecursibleDirectoryContentsGenerator {
     return try RecursibleDirectoryContentsGenerator(path: path, fileSystem: fileSystem, recursionFilter: recursing)
 }
+#else
+/**
+ - Returns: a generator that walks the specified directory producing all
+ files therein. Directories are recursed based on the return value of
+ `recursing`.
+ 
+ - Warning: directories that cannot be entered due to permissions problems
+ are silently ignored. So keep that in mind.
+ 
+ - Warning: Symbolic links that point to directories are *not* followed.
+ 
+ - Note: returning `false` from `recursing` still produces that directory
+ from the generator; just not its contents.
+ */
+public func walk(
+    _ path: AbsolutePath,
+    fileSystem: FileSystem,
+    recursing: @escaping (AbsolutePath) -> Bool
+) throws -> RecursibleDirectoryContentsGenerator {
+    return try RecursibleDirectoryContentsGenerator(path: path, fileSystem: fileSystem, recursionFilter: recursing)
+}
+#endif
 
 /**
  Produced by `walk`.
@@ -162,6 +213,7 @@ public class RecursibleDirectoryContentsGenerator: IteratorProtocol, Sequence {
     }
 }
 
+#if !os(WASI)
 extension AbsolutePath {
     /// Returns a path suitable for display to the user (if possible, it is made
     /// to be relative to the current working directory).
@@ -181,3 +233,4 @@ extension AbsolutePath {
         }
     }
 }
+#endif

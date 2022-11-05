@@ -8,6 +8,8 @@
  See http://swift.org/CONTRIBUTORS.txt for Swift project authors
 */
 
+#if !os(WASI)
+
 import protocol Foundation.CustomNSError
 import var Foundation.NSLocalizedDescriptionKey
 import class Foundation.NSLock
@@ -1206,3 +1208,5 @@ extension Process {
         stdoutStream.flush()
     }
 }
+
+#endif

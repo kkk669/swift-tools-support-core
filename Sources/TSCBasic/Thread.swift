@@ -8,6 +8,8 @@
  See http://swift.org/CONTRIBUTORS.txt for Swift project authors
 */
 
+#if !os(WASI)
+
 import Foundation
 #if os(Windows)
 import WinSDK
@@ -96,4 +98,6 @@ final private class ThreadImpl: Foundation.Thread {
 #else
 // Thread on Linux supports closure so just use it directly.
 typealias ThreadImpl = Foundation.Thread
+#endif
+
 #endif

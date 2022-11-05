@@ -8,6 +8,8 @@
  See http://swift.org/CONTRIBUTORS.txt for Swift project authors
 */
 
+#if !os(WASI)
+
 import Dispatch
 import Foundation
 
@@ -122,3 +124,5 @@ public final class ProcessSet {
         }
     }
 }
+
+#endif

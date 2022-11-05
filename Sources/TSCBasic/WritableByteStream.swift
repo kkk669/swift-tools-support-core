@@ -9,7 +9,9 @@
 */
 
 import TSCLibc
+#if !os(WASI)
 import Dispatch
+#endif
 
 /// Convert an integer in 0..<16 to its hexadecimal ASCII character.
 private func hexdigit(_ value: UInt8) -> UInt8 {
@@ -66,7 +68,7 @@ public extension WritableByteStream {
 // Public alias to the old name to not introduce API compatibility.
 public typealias OutputByteStream = WritableByteStream
 
-#if os(Android)
+#if os(Android) || os(WASI)
 public typealias FILEPointer = OpaquePointer
 #else
 public typealias FILEPointer = UnsafeMutablePointer<FILE>
@@ -155,8 +157,10 @@ public class _WritableByteStreamBase: WritableByteStream {
     /// Default buffer size of the data buffer.
     private static let bufferSize = 1024
 
+#if !os(WASI)
     /// Queue to protect mutating operation.
     fileprivate let queue = DispatchQueue(label: "org.swift.swiftpm.basic.stream")
+#endif
 
     init(buffered: Bool) {
         self._buffered = buffered
@@ -296,55 +300,89 @@ public class _WritableByteStreamBase: WritableByteStream {
 /// it will also ensure it is type-safe will all other `ThreadSafeOutputByteStream` instances
 /// around the same stream.
 public final class ThreadSafeOutputByteStream: WritableByteStream {
+#if !os(WASI)
     private static let defaultQueue = DispatchQueue(label: "org.swift.swiftpm.basic.thread-safe-output-byte-stream")
+#endif
     public let stream: WritableByteStream
+#if !os(WASI)
     private let queue: DispatchQueue
+#endif
 
     public var position: Int {
+#if !os(WASI)
         return queue.sync {
             stream.position
         }
+#else
+        return stream.position
+#endif
     }
 
     public init(_ stream: WritableByteStream) {
         self.stream = stream
+#if !os(WASI)
         self.queue = (stream as? _WritableByteStreamBase)?.queue ?? ThreadSafeOutputByteStream.defaultQueue
+#endif
     }
 
     public func write(_ byte: UInt8) {
+#if !os(WASI)
         queue.sync {
             stream.write(byte)
         }
+#else
+        stream.write(byte)
+#endif
     }
 
     public func write<C: Collection>(_ bytes: C) where C.Element == UInt8 {
+#if !os(WASI)
         queue.sync {
             stream.write(bytes)
         }
+#else
+        stream.write(bytes)
+#endif
     }
 
     public func flush() {
+#if !os(WASI)
         queue.sync {
             stream.flush()
         }
+#else
+        stream.flush()
+#endif
     }
 
     public func write<S: Sequence>(sequence: S) where S.Iterator.Element == UInt8 {
+#if !os(WASI)
         queue.sync {
             stream.write(sequence: sequence)
         }
+#else
+        stream.write(sequence: sequence)
+#endif
     }
 
     public func writeJSONEscaped(_ string: String) {
+#if !os(WASI)
         queue.sync {
             stream.writeJSONEscaped(string)
         }
+#else
+        stream.writeJSONEscaped(string)
+#endif
     }
 
     public func close() throws {
+#if !os(WASI)
         try queue.sync {
             try stream.close()
         }
+#else
+        try stream.close()
+#endif
     }
 }
 
