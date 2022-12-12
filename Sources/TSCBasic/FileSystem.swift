@@ -620,7 +620,7 @@ public class InMemoryFileSystem: FileSystem {
         }
     }
 
-    /// The root node of the filesytem.
+    /// The root node of the filesystem.
     private var root: Node
 
     /// Protects `root` and everything underneath it.
@@ -636,7 +636,7 @@ public class InMemoryFileSystem: FileSystem {
 #endif
 
     /// Exclusive file system lock vended to clients through `withLock()`.
-    // Used to ensure that DispatchQueues are releassed when they are no longer in use.
+    /// Used to ensure that DispatchQueues are released when they are no longer in use.
     private struct WeakReference<Value: AnyObject> {
         weak var reference: Value?
 
