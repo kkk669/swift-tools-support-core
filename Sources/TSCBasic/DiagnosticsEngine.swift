@@ -87,7 +87,7 @@ public final class DiagnosticsEngine: CustomStringConvertible {
     public typealias DiagnosticsHandler = (Diagnostic) -> Void
 
 #if !os(WASI)
-    /// Queue to protect concurrent mutations to the diagnositcs engine.
+    /// Queue to protect concurrent mutations to the diagnostics engine.
     private let queue = DispatchQueue(label: "\(DiagnosticsEngine.self)")
 
     /// Queue for dispatching handlers.
@@ -218,7 +218,7 @@ public struct StringDiagnostic: DiagnosticData {
     }
 }
 
-/// Represents a diagnostic location whic is unknown.
+/// Represents a diagnostic location which is unknown.
 public final class UnknownLocation: DiagnosticLocation {
     /// The singleton instance.
     public static let location = UnknownLocation()
