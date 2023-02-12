@@ -13,19 +13,19 @@ import Dispatch
 #endif
 
 /// The payload of a diagnostic.
-public protocol DiagnosticData: CustomStringConvertible {
+public protocol DiagnosticData: Sendable, CustomStringConvertible {
 }
 
 extension DiagnosticData {
     public var localizedDescription: String { self.description }
 }
 
-public protocol DiagnosticLocation: CustomStringConvertible {
+public protocol DiagnosticLocation: Sendable, CustomStringConvertible {
 }
 
-public struct Diagnostic: CustomStringConvertible {
+public struct Diagnostic: CustomStringConvertible, Sendable {
     /// The behavior associated with this diagnostic.
-    public enum Behavior {
+    public enum Behavior: Sendable {
         /// An error which will halt the operation.
         case error
 
@@ -40,7 +40,7 @@ public struct Diagnostic: CustomStringConvertible {
         case ignored
     }
 
-    public struct Message {
+    public struct Message: Sendable {
         /// The diagnostic's behavior.
         public let behavior: Behavior
 
@@ -209,7 +209,7 @@ extension Diagnostic.Message {
     }
 }
 
-public struct StringDiagnostic: DiagnosticData {
+public struct StringDiagnostic: DiagnosticData, Sendable {
     /// The diagnostic description.
     public let description: String
 

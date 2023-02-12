@@ -386,6 +386,13 @@ public final class ThreadSafeOutputByteStream: WritableByteStream {
     }
 }
 
+
+#if swift(<5.6)
+extension ThreadSafeOutputByteStream: UnsafeSendable {}
+#else
+extension ThreadSafeOutputByteStream: @unchecked Sendable {}
+#endif
+
 /// Define an output stream operator. We need it to be left associative, so we
 /// use `<<<`.
 infix operator <<< : StreamingPrecedence

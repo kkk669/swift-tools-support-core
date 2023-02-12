@@ -15,8 +15,8 @@ import Dispatch
 #endif
 import SystemPackage
 
-public struct FileSystemError: Error, Equatable {
-    public enum Kind: Equatable {
+public struct FileSystemError: Error, Equatable, Sendable {
+    public enum Kind: Equatable, Sendable {
         /// Access to the path is denied.
         ///
         /// This is used when an operation cannot be completed because a component of
